@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o /updati ./cmd/updati
 
 # Runtime stage
-FROM alpine:3.20
+FROM alpine:3.23
 
 # Install runtime dependencies with all common PHP extensions
 RUN apk add --no-cache \
