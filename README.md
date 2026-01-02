@@ -25,9 +25,7 @@ jobs:
           github_token: ${{ secrets.UPDATI_TOKEN }}
           owner: your-org
           repo_patterns: |
-            ^laravel-.*
-            .*-api$
-            my-specific-repo
+            .*
           workers: '10'
           base_branch: main
           create_pr: 'true'
@@ -35,6 +33,12 @@ jobs:
           update_composer: 'true'
           update_npm: 'true'
 ```
+
+Pattern examples:
+- `.*` - all repositories
+- `^laravel-.*` - repos starting with "laravel-"
+- `.*-api$` - repos ending with "-api"
+- `^(app|web)-.*` - repos starting with "app-" or "web-"
 
 Requires a [Personal Access Token](https://github.com/settings/tokens) with `repo` scope stored as `UPDATI_TOKEN` secret.
 

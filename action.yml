@@ -1,5 +1,5 @@
 name: 'Updati - Dependency Updater'
-description: 'Automatically update dependencies in Laravel projects across multiple repositories'
+description: 'Automatically update dependencies across multiple repositories'
 author: '@janyksteenbeek'
 
 branding:
@@ -51,16 +51,29 @@ outputs:
     description: 'Number of repositories that failed to update'
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  env:
-    GITHUB_TOKEN: ${{ inputs.github_token }}
-    INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
-    INPUT_OWNER: ${{ inputs.owner }}
-    INPUT_REPO_PATTERNS: ${{ inputs.repo_patterns }}
-    INPUT_WORKERS: ${{ inputs.workers }}
-    INPUT_BASE_BRANCH: ${{ inputs.base_branch }}
-    INPUT_CREATE_PR: ${{ inputs.create_pr }}
-    INPUT_DRY_RUN: ${{ inputs.dry_run }}
-    INPUT_UPDATE_COMPOSER: ${{ inputs.update_composer }}
-    INPUT_UPDATE_NPM: ${{ inputs.update_npm }}
+  using: 'composite'
+  steps:
+    - name: Run Updati
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        UPDATI_OWNER: ${{ inputs.owner }}
+        UPDATI_REPO_PATTERNS: ${{ inputs.repo_patterns }}
+        UPDATI_WORKERS: ${{ inputs.workers }}
+        UPDATI_BASE_BRANCH: ${{ inputs.base_branch }}
+        UPDATI_CREATE_PR: ${{ inputs.create_pr }}
+        UPDATI_DRY_RUN: ${{ inputs.dry_run }}
+        UPDATI_UPDATE_COMPOSER: ${{ inputs.update_composer }}
+        UPDATI_UPDATE_NPM: ${{ inputs.update_npm }}
+      run: |
+        docker run --rm \
+          -e GITHUB_TOKEN \
+          -e UPDATI_OWNER \
+          -e UPDATI_REPO_PATTERNS \
+          -e UPDATI_WORKERS \
+          -e UPDATI_BASE_BRANCH \
+          -e UPDATI_CREATE_PR \
+          -e UPDATI_DRY_RUN \
+          -e UPDATI_UPDATE_COMPOSER \
+          -e UPDATI_UPDATE_NPM \
+          ghcr.io/janyksteenbeek/updati:latest

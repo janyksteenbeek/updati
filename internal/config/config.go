@@ -144,6 +144,20 @@ func (c *Config) applyEnvOverrides() {
 	if createPR := os.Getenv("INPUT_CREATE_PR"); createPR != "" {
 		c.CreatePR = createPR == "true"
 	}
+
+	if updateComposer := os.Getenv("UPDATI_UPDATE_COMPOSER"); updateComposer != "" {
+		c.UpdateComposer = updateComposer == "true"
+	}
+	if updateComposer := os.Getenv("INPUT_UPDATE_COMPOSER"); updateComposer != "" {
+		c.UpdateComposer = updateComposer == "true"
+	}
+
+	if updateNPM := os.Getenv("UPDATI_UPDATE_NPM"); updateNPM != "" {
+		c.UpdateNPM = updateNPM == "true"
+	}
+	if updateNPM := os.Getenv("INPUT_UPDATE_NPM"); updateNPM != "" {
+		c.UpdateNPM = updateNPM == "true"
+	}
 }
 
 // CompilePatterns compiles regex patterns for repository matching

@@ -80,6 +80,9 @@ func (r *Runner) printBanner() {
 	fmt.Printf("   Workers: %d\n", r.cfg.Workers)
 	fmt.Printf("   Dry Run: %v\n", r.cfg.DryRun)
 	fmt.Printf("   Mode: %s\n", r.modeString())
+	if len(r.cfg.RepoPatterns) > 0 {
+		fmt.Printf("   Patterns: %v\n", r.cfg.RepoPatterns)
+	}
 	fmt.Println()
 }
 
