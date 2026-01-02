@@ -25,6 +25,7 @@ FROM alpine:3.23
 RUN apk add --no-cache \
     git \
     ca-certificates \
+    zip \
     nodejs \
     npm \
     # PHP 8.2
@@ -34,11 +35,7 @@ RUN apk add --no-cache \
     php82-openssl \
     php82-curl \
     php82-iconv \
-    php82-zip \
     php82-dom \
-    php82-xml \
-    php82-xmlwriter \
-    php82-xmlreader \
     php82-pdo \
     php82-pdo_mysql \
     php82-pdo_pgsql \
@@ -49,7 +46,6 @@ RUN apk add --no-cache \
     php82-simplexml \
     php82-bcmath \
     php82-intl \
-    php82-sodium \
     php82-pcntl \
     php82-posix \
     # PHP 8.3
