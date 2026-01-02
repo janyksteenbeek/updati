@@ -182,14 +182,13 @@ func (u *Updater) cloneRepo(ctx context.Context, repo *gh.Repository, dir string
 		1,
 	)
 
-	cmd := exec.CommandContext(ctx, "git", "clone", "--depth", "1", "-b", repo.DefaultRef, cloneURL, dir)
+	// Clone with full history for pushing (shallow clones can cause issues)
+	cmd := exec.CommandContext(ctx, "git", "clone", "-b", repo.DefaultRef, cloneURL, dir)
 	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("git clone failed: %s", stderr.String())
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git clone failed: %s", string(output))
 	}
 
 	return nil
@@ -199,39 +198,60 @@ func (u *Updater) createBranch(dir, branchName string) error {
 	cmd := exec.Command("git", "checkout", "-B", branchName)
 	cmd.Dir = dir
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("git checkout failed: %s", stderr.String())
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git checkout failed: %s", string(output))
 	}
 
 	return nil
 }
 
 func (u *Updater) commitAndPush(ctx context.Context, dir, branchName string) error {
-	cmds := [][]string{
-		{"git", "config", "user.email", "updati@github.com"},
-		{"git", "config", "user.name", "Updati Bot"},
-		{"git", "add", "-A"},
-		{"git", "commit", "-m", u.cfg.CommitMessage},
-		{"git", "push", "-f", "origin", branchName},
+	// Configure git user
+	if err := u.runGit(ctx, dir, "config", "user.email", "updati@github.com"); err != nil {
+		return err
+	}
+	if err := u.runGit(ctx, dir, "config", "user.name", "Updati Bot"); err != nil {
+		return err
 	}
 
-	for _, args := range cmds {
-		cmd := exec.CommandContext(ctx, args[0], args[1:]...)
-		cmd.Dir = dir
-		cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+	// Stage all changes
+	if err := u.runGit(ctx, dir, "add", "-A"); err != nil {
+		return err
+	}
 
-		var stderr bytes.Buffer
-		cmd.Stderr = &stderr
+	// Check if there are changes to commit
+	cmd := exec.CommandContext(ctx, "git", "status", "--porcelain")
+	cmd.Dir = dir
+	output, _ := cmd.Output()
+	if len(strings.TrimSpace(string(output))) == 0 {
+		return nil // Nothing to commit
+	}
 
-		if err := cmd.Run(); err != nil {
-			if strings.Contains(stderr.String(), "nothing to commit") {
-				continue
-			}
-			return fmt.Errorf("%s failed: %s", args[0], stderr.String())
+	// Commit
+	if err := u.runGit(ctx, dir, "commit", "-m", u.cfg.CommitMessage); err != nil {
+		if strings.Contains(err.Error(), "nothing to commit") {
+			return nil
 		}
+		return err
+	}
+
+	// Push
+	if err := u.runGit(ctx, dir, "push", "-f", "origin", branchName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *Updater) runGit(ctx context.Context, dir string, args ...string) error {
+	cmd := exec.CommandContext(ctx, "git", args...)
+	cmd.Dir = dir
+	cmd.Env = append(os.Environ(), "GIT_TERMINAL_PROMPT=0")
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("git %s failed: %s", args[0], string(output))
 	}
 
 	return nil
