@@ -105,8 +105,7 @@ RUN apk add --no-cache \
     php85-sodium \
     php85-pcntl \
     php85-posix \
-    composer \
-    && ln -s /usr/bin/php85 /usr/bin/php
+    composer
 
 # Create non-root user
 RUN adduser -D -h /home/updati updati
