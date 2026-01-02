@@ -28,26 +28,6 @@ RUN apk add --no-cache \
     zip \
     nodejs \
     npm \
-    # PHP 8.2
-    php82 \
-    php82-phar \
-    php82-mbstring \
-    php82-openssl \
-    php82-curl \
-    php82-iconv \
-    php82-dom \
-    php82-pdo \
-    php82-pdo_mysql \
-    php82-pdo_pgsql \
-    php82-pdo_sqlite \
-    php82-session \
-    php82-ctype \
-    php82-fileinfo \
-    php82-simplexml \
-    php82-bcmath \
-    php82-intl \
-    php82-pcntl \
-    php82-posix \
     # PHP 8.3
     php83 \
     php83-phar \
