@@ -1,5 +1,5 @@
 # Build stage
-FROM golang:1.25-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 RUN apk add --no-cache git ca-certificates
 
@@ -19,67 +19,14 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o /updati ./cmd/updati
 
 # Runtime stage
-FROM alpine:3.23
+FROM alpine:3.20
 
-# Install runtime dependencies with multiple PHP versions
+# Install runtime dependencies with all common PHP extensions
 RUN apk add --no-cache \
     git \
     ca-certificates \
-    zip \
     nodejs \
     npm \
-    # PHP 8.3
-    php83 \
-    php83-phar \
-    php83-mbstring \
-    php83-openssl \
-    php83-curl \
-    php83-iconv \
-    php83-zip \
-    php83-dom \
-    php83-xml \
-    php83-xmlwriter \
-    php83-xmlreader \
-    php83-tokenizer \
-    php83-pdo \
-    php83-pdo_mysql \
-    php83-pdo_pgsql \
-    php83-pdo_sqlite \
-    php83-session \
-    php83-ctype \
-    php83-fileinfo \
-    php83-simplexml \
-    php83-bcmath \
-    php83-intl \
-    php83-sodium \
-    php83-pcntl \
-    php83-posix \
-    # PHP 8.4
-    php84 \
-    php84-phar \
-    php84-mbstring \
-    php84-openssl \
-    php84-curl \
-    php84-iconv \
-    php84-zip \
-    php84-dom \
-    php84-xml \
-    php84-xmlwriter \
-    php84-xmlreader \
-    php84-tokenizer \
-    php84-pdo \
-    php84-pdo_mysql \
-    php84-pdo_pgsql \
-    php84-pdo_sqlite \
-    php84-session \
-    php84-ctype \
-    php84-fileinfo \
-    php84-simplexml \
-    php84-bcmath \
-    php84-intl \
-    php84-sodium \
-    php84-pcntl \
-    php84-posix \
     php85 \
     php85-phar \
     php85-mbstring \
@@ -101,6 +48,7 @@ RUN apk add --no-cache \
     php85-fileinfo \
     php85-simplexml \
     php85-bcmath \
+    php85-gd \
     php85-intl \
     php85-sodium \
     php85-pcntl \
