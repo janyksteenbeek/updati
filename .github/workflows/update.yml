@@ -1,0 +1,36 @@
+# Example workflow to run Updati on a schedule
+name: Update Laravel Dependencies
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Perform a dry run'
+        type: boolean
+        default: false
+      direct_push:
+        description: 'Push directly instead of creating PRs'
+        type: boolean
+        default: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Updati
+        uses: janyksteenbeek/updati@main
+        with:
+          github_token: ${{ secrets.UPDATI_TOKEN }}
+          owner: ${{ github.repository_owner }}
+          repo_patterns: '^laravel-.*,.*-api$'
+          workers: '5'
+          create_pr: ${{ inputs.direct_push && 'false' || 'true' }}
+          dry_run: ${{ inputs.dry_run || 'false' }}
+
