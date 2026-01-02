@@ -42,13 +42,9 @@ func (p *Pool) Process(ctx context.Context, repos []*gh.Repository) *ProcessResu
 		Results: make([]*updater.Result, 0, len(repos)),
 	}
 
-	// Channel for repos to process
 	repoChan := make(chan *gh.Repository, len(repos))
-
-	// Channel for results
 	resultChan := make(chan *updater.Result, len(repos))
 
-	// Start workers
 	var wg sync.WaitGroup
 	for i := 0; i < p.workers; i++ {
 		wg.Add(1)
@@ -58,7 +54,6 @@ func (p *Pool) Process(ctx context.Context, repos []*gh.Repository) *ProcessResu
 		}(i)
 	}
 
-	// Send repos to workers
 	go func() {
 		for _, repo := range repos {
 			select {
@@ -70,13 +65,11 @@ func (p *Pool) Process(ctx context.Context, repos []*gh.Repository) *ProcessResu
 		close(repoChan)
 	}()
 
-	// Wait for workers to finish
 	go func() {
 		wg.Wait()
 		close(resultChan)
 	}()
 
-	// Collect results
 	for res := range resultChan {
 		result.Results = append(result.Results, res)
 
@@ -104,17 +97,18 @@ func (p *Pool) worker(ctx context.Context, id int, repos <-chan *gh.Repository, 
 
 		fmt.Printf("[Worker %d] Processing %s...\n", id, repo.FullName)
 
-		// Check if it's a Laravel project
-		if err := p.client.CheckIfLaravel(ctx, repo); err != nil {
+		// Detect what dependency managers the repo uses
+		if err := p.client.DetectDependencies(ctx, repo); err != nil {
 			results <- &updater.Result{
 				Repository: repo,
-				Error:      fmt.Errorf("failed to check repository: %w", err),
+				Error:      fmt.Errorf("failed to detect dependencies: %w", err),
 			}
 			continue
 		}
 
-		if !repo.IsLaravel {
-			fmt.Printf("[Worker %d] Skipping %s (not a Laravel project)\n", id, repo.FullName)
+		// Skip if no supported dependency managers found
+		if !repo.HasComposer && !repo.HasNPM {
+			fmt.Printf("[Worker %d] Skipping %s (no composer.json or package.json)\n", id, repo.FullName)
 			results <- &updater.Result{
 				Repository: repo,
 				Success:    true,
@@ -129,7 +123,11 @@ func (p *Pool) worker(ctx context.Context, id int, repos <-chan *gh.Repository, 
 		if result.Error != nil {
 			fmt.Printf("[Worker %d] Error updating %s: %v\n", id, repo.FullName, result.Error)
 		} else if result.Updated {
-			fmt.Printf("[Worker %d] Updated %s (PR: %s)\n", id, repo.FullName, result.PRURL)
+			if result.PRURL != "" {
+				fmt.Printf("[Worker %d] Updated %s (PR: %s)\n", id, repo.FullName, result.PRURL)
+			} else {
+				fmt.Printf("[Worker %d] Updated %s (pushed to %s)\n", id, repo.FullName, result.Branch)
+			}
 		} else {
 			fmt.Printf("[Worker %d] No updates needed for %s\n", id, repo.FullName)
 		}
@@ -137,4 +135,3 @@ func (p *Pool) worker(ctx context.Context, id int, repos <-chan *gh.Repository, 
 		results <- result
 	}
 }
-
