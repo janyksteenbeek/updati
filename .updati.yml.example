@@ -1,0 +1,47 @@
+# Updati Configuration Example
+# Copy this to .updati.yml and customize for your needs
+
+# GitHub Personal Access Token (or use GITHUB_TOKEN env var)
+# Required permissions: repo (full control)
+# github_token: ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# GitHub owner (user or organization) to scan for repositories
+owner: your-org-or-username
+
+# Regex patterns to match repository names
+# Repositories matching ANY pattern will be processed
+repo_patterns:
+  - "^laravel-.*"           # Matches repos starting with "laravel-"
+  - ".*-api$"               # Matches repos ending with "-api"
+  - "my-specific-project"   # Exact match
+
+# Number of concurrent workers (max: 20)
+workers: 5
+
+# Update settings
+update_composer: true       # Update Composer dependencies
+update_npm: true            # Update NPM dependencies
+
+# Pull request settings
+create_pr: true             # Create PR instead of direct push (set false for immediate push)
+base_branch: main           # Branch to base updates on
+pr_branch: updati/dependencies  # Branch name for the PR
+commit_message: "chore(deps): update dependencies"
+pr_title: "⬆️ Update dependencies"
+pr_body: |
+  This PR was automatically created by [Updati](https://github.com/janyksteenbeek/updati) to update project dependencies.
+
+  ## Changes
+  - Updated Composer dependencies
+  - Updated NPM dependencies
+
+  Please review and merge if all checks pass.
+
+# Labels to add to PRs
+labels:
+  - dependencies
+  - automated
+
+# Dry run mode - don't actually make changes
+dry_run: false
+

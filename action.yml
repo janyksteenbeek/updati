@@ -1,0 +1,64 @@
+name: 'Updati - Laravel Dependency Updater'
+description: 'Automatically update dependencies in Laravel projects across multiple repositories'
+author: 'Jany Steenbeek'
+
+branding:
+  icon: 'refresh-cw'
+  color: 'orange'
+
+inputs:
+  github_token:
+    description: 'GitHub token with repo access'
+    required: true
+  owner:
+    description: 'GitHub owner (user or organization) to scan for repositories'
+    required: true
+  repo_patterns:
+    description: 'Regex patterns to match repository names (one per line)'
+    required: false
+    default: '.*'
+  workers:
+    description: 'Number of concurrent workers'
+    required: false
+    default: '5'
+  base_branch:
+    description: 'Base branch to create PRs against'
+    required: false
+    default: 'main'
+  create_pr:
+    description: 'Create pull requests instead of direct push'
+    required: false
+    default: 'true'
+  dry_run:
+    description: 'Perform a dry run without making changes'
+    required: false
+    default: 'false'
+  update_composer:
+    description: 'Update Composer dependencies'
+    required: false
+    default: 'true'
+  update_npm:
+    description: 'Update NPM dependencies'
+    required: false
+    default: 'true'
+
+outputs:
+  total:
+    description: 'Total number of repositories processed'
+  updated:
+    description: 'Number of repositories updated'
+  failed:
+    description: 'Number of repositories that failed to update'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    GITHUB_TOKEN: ${{ inputs.github_token }}
+    INPUT_GITHUB_TOKEN: ${{ inputs.github_token }}
+    INPUT_OWNER: ${{ inputs.owner }}
+    INPUT_REPO_PATTERNS: ${{ inputs.repo_patterns }}
+    INPUT_WORKERS: ${{ inputs.workers }}
+    INPUT_BASE_BRANCH: ${{ inputs.base_branch }}
+    INPUT_CREATE_PR: ${{ inputs.create_pr }}
+    INPUT_DRY_RUN: ${{ inputs.dry_run }}
