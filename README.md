@@ -2,6 +2,8 @@
 
 Automatically update project dependencies across multiple GitHub repositories.
 
+Supports **Composer** and **NPM** projects. Scans repos for `composer.json` and `package.json`, runs updates, and creates PRs.
+
 ## Installation
 
 ### GitHub Action
@@ -36,8 +38,8 @@ jobs:
 
 Pattern examples:
 - `.*` - all repositories
-- `^laravel-.*` - repos starting with "laravel-"
-- `.*-api$` - repos ending with "-api"
+- `^api-.*` - repos starting with "api-"
+- `.*-backend$` - repos ending with "-backend"
 - `^(app|web)-.*` - repos starting with "app-" or "web-"
 
 Requires a [Personal Access Token](https://github.com/settings/tokens) with `repo` scope stored as `UPDATI_TOKEN` secret.
@@ -56,17 +58,17 @@ docker run --rm \
 ```bash
 go install github.com/janyksteenbeek/updati/cmd/updati@latest
 
-updati -t $GITHUB_TOKEN -o your-org -p "^laravel-.*"
+updati -t $GITHUB_TOKEN -o your-org -p ".*"
 ```
 
 ## Usage
 
 ```bash
-# Update all Laravel repos matching pattern
-updati -t $GITHUB_TOKEN -o myorg -p "^laravel-.*"
+# Update all repos
+updati -t $GITHUB_TOKEN -o myorg
 
-# Multiple patterns
-updati -t $GITHUB_TOKEN -o myorg -p "^laravel-.*" -p ".*-api$"
+# Match specific patterns
+updati -t $GITHUB_TOKEN -o myorg -p "^api-.*" -p ".*-service$"
 
 # Push directly instead of creating PRs
 updati -t $GITHUB_TOKEN -o myorg --push
@@ -96,9 +98,11 @@ updati -c .updati.yml
 ```yaml
 owner: your-org
 repo_patterns:
-  - "^laravel-.*"
+  - ".*"
 workers: 5
 create_pr: true
+update_composer: true
+update_npm: true
 ```
 
 ## GitHub Token
