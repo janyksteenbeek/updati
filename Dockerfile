@@ -19,7 +19,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build \
     -o /updati ./cmd/updati
 
 # Runtime stage
-FROM alpine:edge
+FROM alpine:3.23
 
 # Install runtime dependencies with multiple PHP versions
 RUN apk add --no-cache \
@@ -39,7 +39,6 @@ RUN apk add --no-cache \
     php82-xml \
     php82-xmlwriter \
     php82-xmlreader \
-    php82-tokenizer \
     php82-pdo \
     php82-pdo_mysql \
     php82-pdo_pgsql \
