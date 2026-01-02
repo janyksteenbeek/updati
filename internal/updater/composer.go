@@ -1,7 +1,6 @@
 package updater
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
@@ -24,46 +23,46 @@ func (p *ComposerPlugin) Detect(repo *gh.Repository) bool {
 	return repo.HasComposer
 }
 
-// Update runs composer update and returns changed files
+// Update runs composer upgrade and returns changed files
 func (p *ComposerPlugin) Update(ctx context.Context, dir string) (bool, []string, error) {
 	lockPath := filepath.Join(dir, "composer.lock")
+	jsonPath := filepath.Join(dir, "composer.json")
 
-	// Get original hash
-	originalHash, err := fileHash(lockPath)
-	if err != nil && !os.IsNotExist(err) {
-		return false, nil, fmt.Errorf("failed to hash composer.lock: %w", err)
-	}
+	// Get original hashes
+	lockHash, _ := fileHash(lockPath)
+	jsonHash, _ := fileHash(jsonPath)
 
-	// Run composer update
-	cmd := exec.CommandContext(ctx, "composer", "update",
+	// Run composer upgrade with all dependencies
+	cmd := exec.CommandContext(ctx, "composer", "upgrade",
 		"--no-interaction",
 		"--no-scripts",
-		"--no-plugins",
 		"--prefer-dist",
+		"--with-all-dependencies",
 		"--ignore-platform-reqs",
 	)
 	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "COMPOSER_NO_INTERACTION=1")
+	cmd.Env = append(os.Environ(),
+		"COMPOSER_NO_INTERACTION=1",
+		"COMPOSER_NO_AUDIT=1",
+	)
 
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-
-	if err := cmd.Run(); err != nil {
-		return false, nil, fmt.Errorf("composer update failed: %s", stderr.String())
-	}
-
-	// Check if file changed
-	newHash, err := fileHash(lockPath)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		if os.IsNotExist(err) {
-			return false, nil, nil
-		}
-		return false, nil, fmt.Errorf("failed to hash composer.lock after update: %w", err)
+		return false, nil, fmt.Errorf("composer upgrade failed: %s", string(output))
 	}
 
-	if originalHash != newHash {
-		return true, []string{"composer.lock"}, nil
+	// Check which files changed
+	var changedFiles []string
+
+	newLockHash, _ := fileHash(lockPath)
+	if lockHash != newLockHash {
+		changedFiles = append(changedFiles, "composer.lock")
 	}
 
-	return false, nil, nil
+	newJsonHash, _ := fileHash(jsonPath)
+	if jsonHash != newJsonHash {
+		changedFiles = append(changedFiles, "composer.json")
+	}
+
+	return len(changedFiles) > 0, changedFiles, nil
 }

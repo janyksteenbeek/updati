@@ -1,7 +1,6 @@
 package updater
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"os"
